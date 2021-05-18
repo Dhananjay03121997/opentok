@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html ng-app="opentok-meet-login">
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
+        <link rel="icon" sizes="128x128" href="icon.png">
+        <link href='//fonts.googleapis.com/css?family=Ropa+Sans' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="/css/main.css" media="screen" title="no title" charset="utf-8">
+        <link rel="stylesheet" href="/css/index.css" media="screen" title="no title" charset="utf-8">
+        <title>OpenTok Meet</title>
+        <script>
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-49010461-2', 'auto');
+          ga('send', 'pageview');
+
+        </script>
+    </head>
+    <body ng-controller="MainCtrl">
+        <div id="wrapper">
+            <img src="images/opentok-meet-logo.png" alt="Logo" class="logo">
+            <form id="joinRoom" ng-submit="joinRoom()">
+                <div id="inputs">
+                  <input type="text" name="room" value="" ng-model="room" id="room" placeholder="room name">
+                  <div id="advancedLink">
+                    <a href="" ng-click="advanced = true" ng-show="!advanced">Advanced</a>
+                  </div>
+                  <div id="advanced" ng-show="advanced" ng-cloak>
+                    <div id="p2pCheckbox">
+                      <input type="checkbox" name="p2p" id="p2p" ng-model="p2p" ng-change="p2pChanged()">
+                        <label for="p2p">
+                          p2p <a href="https://support.tokbox.com/hc/en-us/articles/202997234-What-is-the-difference-between-a-Routed-vs-Relayed-Session-" target="_blank">?</a>
+                        </label>
+                    </div>
+                    <br>
+                    <div id="roomTypeRadio">
+                      <label>Normal<input type="radio" name="roomType" ng-model="roomType" value="normal"><br></label>
+                      <label title="just use the whiteboard">Whiteboard only<input type="radio" name="roomType" ng-model="roomType" value="whiteboard"><br></label>
+                      <label title="just share your screen with the room">Screenshare only<input type="radio" name="roomType" ng-model="roomType" value="screen"><br></label>
+                    </div>
+                  </div>
+
+                </div>
+                <input type="submit" name="joinRoom" value="Join" id="joinRoomBtn">
+            </form>
+        </div>
+        <script src="/js/commons.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/login.bundle.min.js" type="text/javascript" charset="utf-8"></script>
+    </body>
+</html>

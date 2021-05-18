@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html ng-app="opentok-meet">
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <title><%=room%>: Whiteboard</title>
+        <script src="//static.opentok.com/v2.6/js/opentok.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/commons.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="/js/whiteboard.bundle.min.js" type="text/javascript" charset="utf-8"></script>
+        <script type="text/javascript">
+          angular.module('opentok-meet').value({
+              room: '<%=room%>',
+              baseURL: '/'
+          });
+        </script>
+    </head>
+    <body ng-controller="WhiteboardCtrl">
+        <ot-whiteboard width="1280" height="960" ng-if="connected"></ot-whiteboard>
+    </body>
+</html>

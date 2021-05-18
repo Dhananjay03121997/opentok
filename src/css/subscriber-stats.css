@@ -1,0 +1,22 @@
+subscriber-stats {
+    color: white;
+}
+subscriber-stats button.show-stats-btn {
+    width: 25px;
+    height: 25px;
+    font-size: 27px;
+    cursor: pointer;
+    background-color: transparent;
+    margin-top: 2px;
+    border: none;
+    z-index: 99;
+}
+subscriber-stats div.show-stats-info {
+    background: rgba(0,0,0,.4);
+    padding: 10px;
+    margin-top: 4px;
+}
+
+subscriber-stats button.show-stats {
+  text-shadow: 0px 0px 8px #fff;
+}

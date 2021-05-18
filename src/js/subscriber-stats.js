@@ -1,0 +1,125 @@
+require('../css/subscriber-stats.css');
+const subscriberStatsHTML = require('../templates/subscriber-stats.html');
+
+// StatsService runs on a particular interval and updates the stats for all
+// of the subscribers
+function SubscriberStats(subscriber, onStats) {
+  this.subscriber = subscriber;
+  this.onStats = onStats;
+}
+
+angular.module('opentok-meet').factory('StatsService', ['$interval',
+  function StatsService($interval) {
+    let interval;
+    const subscribers = {}; // A collection of SubscriberStats objects keyed by subscriber.id
+    const updateStats = () => {
+      Object.keys(subscribers).forEach((subscriberId) => {
+        const subscriberStats = subscribers[subscriberId];
+        const { subscriber, lastStats, lastLastStats } = subscriberStats;
+        subscriber.getStats((err, stats) => {
+          if (err) {
+            console.error(err);
+            return;
+          }
+          const currStats = {
+            width: subscriber.videoWidth(),
+            height: subscriber.videoHeight(),
+            timestamp: stats.timestamp,
+          };
+          let secondsElapsed;
+          if (lastStats) {
+            secondsElapsed = (stats.timestamp - lastStats.timestamp) / 1000;
+          }
+          const setCurrStats = (type) => {
+            currStats[type] = stats[type];
+            if (stats[type].packetsReceived > 0) {
+              currStats[`${type}PacketLoss`] = ((stats[type].packetsLost /
+                stats[type].packetsReceived) * 100).toFixed(2);
+            }
+            if (lastStats) {
+              if (lastLastStats && lastLastStats[type] && lastLastStats[type].packetsReceived &&
+                (stats[type].packetsReceived - lastLastStats[type].packetsReceived > 0)) {
+                currStats[`${type}PacketLoss`] =
+                  (((stats[type].packetsLost - lastLastStats[type].packetsLost) /
+                    (stats[type].packetsReceived - lastLastStats[type].packetsReceived)))
+                    .toFixed(2);
+              }
+              const bitsReceived = (stats[type].bytesReceived -
+                (lastStats[type] ? lastStats[type].bytesReceived : 0)) * 8;
+              currStats[`${type}Bitrate`] = ((bitsReceived / secondsElapsed) / 1000).toFixed(0);
+            } else {
+              currStats[`${type}Bitrate`] = '0';
+            }
+          };
+          if (stats.audio) {
+            setCurrStats('audio');
+          }
+          if (stats.video) {
+            setCurrStats('video');
+          }
+          subscriberStats.lastLastStats = subscriberStats.lastStats;
+          subscriberStats.lastStats = currStats;
+          subscriberStats.onStats(currStats);
+        });
+      });
+    };
+    return {
+      addSubscriber(subscriber, onStats) {
+        subscribers[subscriber.id] = new SubscriberStats(subscriber, onStats);
+        if (!interval) {
+          interval = $interval(updateStats, 2000);
+          updateStats();
+        }
+      },
+      removeSubscriber(subscriberId) {
+        delete subscribers[subscriberId];
+        if (Object.keys(subscribers).length === 0) {
+          $interval.cancel(interval);
+          interval = null;
+        }
+      },
+    };
+  },
+]);
+
+angular.module('opentok-meet').directive('subscriberStats', ['OTSession', 'StatsService',
+  '$timeout', function subscriberStats(OTSession, StatsService, $timeout) {
+    return {
+      restrict: 'E',
+      scope: {
+        stream: '=',
+      },
+      template: subscriberStatsHTML,
+      link(scope, element) {
+        let subscriber;
+        let subscriberId;
+        const timeout = $timeout(() => {
+          // subscribe hasn't been called yet so we wait a few milliseconds
+          [subscriber] = OTSession.session.getSubscribersForStream(scope.stream);
+          subscriber.on('connected', () => {
+            subscriberId = subscriber.id;
+
+            StatsService.addSubscriber(subscriber, (stats) => {
+              scope.stats = stats;
+              scope.$apply();
+            });
+          });
+        }, 100);
+
+        angular.element(element).find('button').on('click', () => {
+          scope.showStats = !scope.showStats;
+          subscriber.setStyle({
+            buttonDisplayMode: scope.showStats ? 'on' : 'auto',
+          });
+          scope.$apply();
+        });
+        scope.$on('$destroy', () => {
+          if (subscriberId) {
+            StatsService.removeSubscriber(subscriberId);
+          }
+          $timeout.cancel(timeout);
+        });
+      },
+    };
+  },
+]);
